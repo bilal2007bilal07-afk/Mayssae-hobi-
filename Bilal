@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>💔 بلال ينقذ ميساء</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #0b0e1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+            overflow: hidden;
+            padding: 0;
+        }
+        .game-wrapper {
+            background: #16213e;
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 0 2px #e94560 inset;
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            aspect-ratio: 16 / 9;
+        }
+        .ui-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 12px;
+            background: rgba(15, 52, 96, 0.8);
+            border-radius: 14px;
+            color: #fff;
+            font-weight: bold;
+            font-size: clamp(12px, 2.5vh, 18px);
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: clamp(30px, 6vh, 50px);
+            backdrop-filter: blur(4px);
+            flex-shrink: 0;
+        }
+        .ui-bar .hearts span { color: #ff6b81; font-size: clamp(14px, 2.5vh, 20px); }
+        .ui-bar .level span { color: #f5c842; }
+        .ui-bar .story-tip {
+            background: rgba(233, 69, 96, 0.7);
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: clamp(10px, 1.8vh, 14px);
+            color: #fff;
+            box-shadow: 0 0 15px #e9456080;
+            animation: pulse 1.5s infinite;
+            white-space: nowrap;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .canvas-container {
+            position: relative;
+            flex: 1;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            touch-action: none;
+            min-height: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* يحافظ على النسبة ولا يشوه */
+            background: #000;
+            touch-action: none;
+            image-rendering: pixelated;
+        }
+        .controls-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            backdrop-filter: blur(4px);
+            min-height: clamp(50px, 10vh, 80px);
+            gap: 10px;
+            transition: opacity 0.5s;
+            flex-shrink: 0;
+        }
+        .controls-area.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .controls-area .dpad {
+            display: flex;
+            gap: clamp(10px, 2vw, 20px);
+        }
+        .controls-area .dpad button {
+            width: clamp(55px, 12vw, 90px);
+            height: clamp(55px, 12vw, 90px);
+            border-radius: 60px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(2px);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(28px, 6vw, 48px);
+            font-weight: bold;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.05s ease;
+            touch-action: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .controls-area .dpad button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .controls-area .action-btns {
+            display: flex;
+            gap: clamp(10px, 2vw, 20px);
+            align-items: center;
+        }
+        .controls-area .jump-btn {
+            width: clamp(65px, 14vw, 100px);
+            height: clamp(65px, 14vw, 100px);
+            border-radius: 60px;
+            border: 2px solid rgba(255, 154, 174, 0.5);
+            background: rgba(233, 69, 96, 0.25);
+            color: rgba(255, 255, 255, 0.95);
+            font-size: clamp(24px, 5vw, 36px);
+            box-shadow: 0 5px 0 rgba(138, 31, 50, 0.3);
+            transition: all 0.05s ease;
+            touch-action: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .controls-area .jump-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 rgba(138, 31, 50, 0.3);
+            background: rgba(233, 69, 96, 0.45);
+        }
+        .controls-area .skill-btn {
+            width: clamp(50px, 10vw, 70px);
+            height: clamp(50px, 10vw, 70px);
+            border-radius: 60px;
+            border: 2px solid rgba(125, 223, 154, 0.35);
+            background: rgba(46, 204, 113, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: clamp(14px, 2.5vw, 20px);
+            box-shadow: 0 3px 0 rgba(26, 90, 42, 0.2);
+            transition: all 0.05s ease;
+            touch-action: none;
+            cursor: pointer;
+            flex-direction: column;
+            line-height: 1.2;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .controls-area .skill-btn:disabled {
+            opacity: 0.2;
+            transform: translateY(3px);
+            box-shadow: 0 0px 0 rgba(26, 90, 42, 0.2);
+            pointer-events: none;
+        }
+        .controls-area .skill-btn .cd-text {
+            font-size: clamp(10px, 1.8vw, 14px);
+            color: #ffd700;
+        }
+        .controls-area .skill-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px 0 rgba(26, 90, 42, 0.2);
+            background: rgba(46, 204, 113, 0.3);
+        }
+        .toggle-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            width: clamp(30px, 5vw, 40px);
+            height: clamp(30px, 5vw, 40px);
+            border-radius: 50%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.5);
+            font-size: clamp(14px, 2vw, 20px);
+            cursor: pointer;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            transition: 0.3s;
+        }
+        .toggle-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .overlay-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: clamp(15px, 4vh, 30px);
+            border-radius: 25px;
+            color: #fff;
+            font-size: clamp(18px, 4vh, 30px);
+            font-weight: 900;
+            text-align: center;
+            border: 3px solid #e94560;
+            pointer-events: none;
+            opacity: 0;
+            transition: 0.4s;
+            backdrop-filter: blur(6px);
+            width: 80%;
+            line-height: 1.5;
+            box-shadow: 0 0 60px #e9456080;
+            z-index: 15;
+        }
+        .overlay-msg.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .overlay-msg small {
+            display: block;
+            font-size: clamp(14px, 2.5vh, 20px);
+            font-weight: normal;
+            color: #aaa;
+            margin-top: 8px;
+        }
+        .overlay-msg .maisa-quote {
+            color: #ff6b81;
+            font-size: clamp(20px, 4vh, 32px);
+            font-weight: bold;
+            margin-top: 5px;
+            display: block;
+        }
+        @media (orientation: portrait) {
+            .game-wrapper {
+                aspect-ratio: 16 / 9;
+                max-height: 100vh;
+                width: 100vw;
+            }
+        }
+        @media (orientation: landscape) {
+            .game-wrapper {
+                aspect-ratio: 16 / 9;
+                max-width: 100vw;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+    <div class="ui-bar">
+        <div class="hearts">❤️ <span id="heartCounter">0</span></div>
+        <div class="story-tip" id="storyTip">💔 أنقذ ميساء!</div>
+        <div class="level">📌 <span id="levelDisplay">1</span>/10</div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+        <button id="toggleBtn" class="toggle-btn" title="إخفاء/إظهار الأزرار">👁️</button>
+        <div id="overlayMsg" class="overlay-msg">
+            <span id="msgText">💀 مات بلال...</span>
+            <small id="msgSub">سيتم إعادة المحاولة</small>
+            <span id="maisaQuote" class="maisa-quote"></span>
+        </div>
+    </div>
+
+    <div class="controls-area" id="controlsArea">
+        <div class="dpad">
+            <button id="leftBtn">◀</button>
+            <button id="rightBtn">▶</button>
+        </div>
+        <div class="action-btns">
+            <button id="skillBtn" class="skill-btn">⚡<span class="cd-text" id="skillCdText">جاهز</span></button>
+            <button id="jumpBtn" class="jump-btn">🦘 قفز</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =====================================================================
+    //  🎮  بلال × ميساء - نسخة بدون تشوه + خلفية متغيرة لكل مرحلة
+    // =====================================================================
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const heartSpan = document.getElementById('heartCounter');
+    const levelSpan = document.getElementById('levelDisplay');
+    const storyTip = document.getElementById('storyTip');
+    const overlayMsg = document.getElementById('overlayMsg');
+    const msgText = document.getElementById('msgText');
+    const msgSub = document.getElementById('msgSub');
+    const maisaQuote = document.getElementById('maisaQuote');
+    const skillBtn = document.getElementById('skillBtn');
+    const skillCdText = document.getElementById('skillCdText');
+    const controlsArea = document.getElementById('controlsArea');
+    const toggleBtn = document.getElementById('toggleBtn');
+
+    const W = 800, H = 450;
+    canvas.width = W; canvas.height = H;
+
+    const keys = { left: false, right: false, jump: false, skill: false };
+
+    // --- لاعب (قفز محسّن) ---
+    const player = {
+        x: 100, y: 380, w: 30, h: 38,
+        vx: 0, vy: 0,
+        speed: 6.0,
+        jumpPower: -13.0,
+        gravity: 0.48,
+        grounded: false,
+        facing: 1
+    };
+
+    let hearts = 0;
+    let currentLevel = 1;
+    const MAX_LEVEL = 10;
+    let gameOver = false;
+    let gameWin = false;
+    let deathTimer = 0;
+    let cameraX = 0;
+    let platforms = [];
+    let enemies = [];
+    let heartItems = [];
+    let misaX = 0, misaY = 0;
+
+    let skillCooldown = 0;
+    const MAX_SKILL_CD = 60 * 60;
+
+    let hideTimer = 0;
+    const HIDE_DELAY = 180;
+
+    const maisaQuotes = [
+        "مواااح عليك",
+        "شكرا الحبيب دقلبي",
+        "يخليك ليلي البوغوص ديالي",
+        "كنبغيك العايل ديالي"
+    ];
+
+    // --- ألوان الخلفية لكل مستوى (تدرج لوني) ---
+    const backgroundColors = [
+        // المستوى 1: أزرق غامق
+        { top: '#0a0a2e', bottom: '#1a1a4e', mountain: '#1a0a2a', mountain2: '#0a0a1a' },
+        // المستوى 2: بنفسجي
+        { top: '#1a0a3e', bottom: '#2a1a5e', mountain: '#2a1a3a', mountain2: '#1a0a2a' },
+        // المستوى 3: أخضر داكن
+        { top: '#0a1a0a', bottom: '#1a3a1a', mountain: '#1a2a1a', mountain2: '#0a1a0a' },
+        // المستوى 4: أحمر غامق
+        { top: '#3a0a0a', bottom: '#5a1a1a', mountain: '#2a1a1a', mountain2: '#1a0a0a' },
+        // المستوى 5: برتقالي غامق
+        { top: '#2a1a0a', bottom: '#4a2a1a', mountain: '#2a1a0a', mountain2: '#1a0a0a' },
+        // المستوى 6: فيروزي غامق
+        { top: '#0a2a2a', bottom: '#1a4a4a', mountain: '#1a2a2a', mountain2: '#0a1a1a' },
+        // المستوى 7: وردي غامق
+        { top: '#2a0a2a', bottom: '#4a1a4a', mountain: '#2a1a2a', mountain2: '#1a0a1a' },
+        // المستوى 8: أصفر غامق
+        { top: '#2a2a0a', bottom: '#4a4a1a', mountain: '#2a2a0a', mountain2: '#1a1a0a' },
+        // المستوى 9: نيلي
+        { top: '#0a0a4a', bottom: '#1a1a6a', mountain: '#1a0a3a', mountain2: '#0a0a2a' },
+        // المستوى 10: ذهبي غامق
+        { top: '#2a1a00', bottom: '#4a2a10', mountain: '#2a1a0a', mountain2: '#1a0a00' }
+    ];
+
+    // =====================================================================
+    //  📦  بناء المستويات
+    // =====================================================================
+
+    function buildLevel(levelNum) {
+        let p = [];
+        let e = [];
+        let h = [];
+        let mX = 740, mY = 40;
+
+        p.push({ x: 0, y: 430, w: 800, h: 30 });
+
+        const numPlatforms = Math.min(4 + Math.floor(levelNum * 1.2), 12);
+        let lastY = 420;
+        let lastX = 150;
+
+        let baseOffset = 30;
+        let offsetIncrease = levelNum * 2;
+
+        for (let i = 0; i < numPlatforms; i++) {
+            let yOffset = baseOffset + offsetIncrease + Math.random() * 15;
+            if (levelNum === 1) yOffset = 28 + Math.random() * 12;
+
+            let newY = lastY - yOffset;
+            if (newY < 50) newY = 50 + (i * 8);
+
+            let newX;
+            if (i % 2 === 0) {
+                newX = Math.random() * 180 + 50;
+            } else {
+                newX = Math.random() * 180 + 520;
+            }
+            newX = Math.max(20, Math.min(W - 100, newX));
+
+            let w = 70 + Math.random() * 50;
+            p.push({ x: newX, y: newY, w: w, h: 18 });
+
+            lastY = newY;
+            lastX = newX;
+        }
+
+        let lastPlat = p[p.length - 1];
+        mX = lastPlat.x + lastPlat.w / 2 - 18;
+        mY = lastPlat.y - 60;
+
+        const numEnemies = Math.min(Math.max(0, Math.floor((levelNum - 1) / 1.8)), 5);
+        let enemyPlatforms = p.slice(1, p.length - 1);
+        for (let i = 0; i < numEnemies && i < enemyPlatforms.length; i++) {
+            let plat = enemyPlatforms[i];
+            let ex = plat.x + 5 + Math.random() * (plat.w - 30);
+            let ey = plat.y - 22;
+            let speed = 0.7 + (levelNum * 0.12);
+            e.push({
+                x: ex, y: ey, w: 28, h: 22,
+                vx: speed,
+                minX: plat.x + 3,
+                maxX: plat.x + plat.w - 28,
+                dead: false
+            });
+        }
+
+        const numHearts = Math.min(2 + Math.floor(levelNum / 1.5), 7);
+        let heartPlatforms = p.slice(1, p.length);
+        for (let i = 0; i < numHearts && i < heartPlatforms.length; i++) {
+            let plat = heartPlatforms[i];
+            let hx = plat.x + 10 + Math.random() * (plat.w - 30);
+            let hy = plat.y - 25;
+            h.push({ x: hx, y: hy, w: 18, h: 18, collected: false });
+        }
+
+        return { platforms: p, enemies: e, heartItems: h, misaX: mX, misaY: mY };
+    }
+
+    // =====================================================================
+    //  🔄  تحميل المستوى
+    // =====================================================================
+
+    function loadLevel(num) {
+        if (num > MAX_LEVEL) {
+            gameWin = true;
+            msgText.innerHTML = '🎉🎊 مبروك! أنقذت ميساء في كل المراحل! 🎊🎉';
+            msgSub.innerHTML = 'بلال وميساء عاشا بسعادة في طنجة. 🇲🇦❤️';
+            overlayMsg.classList.add('show');
+            return;
+        }
+
+        let data = buildLevel(num);
+        platforms = data.platforms;
+        enemies = data.enemies;
+        heartItems = data.heartItems;
+        misaX = data.misaX;
+        misaY = data.misaY;
+        hearts = 0;
+        heartSpan.textContent = hearts;
+        levelSpan.textContent = num;
+        resetPlayer();
+        cameraX = 0;
+        gameOver = false;
+        gameWin = false;
+        overlayMsg.classList.remove('show');
+        storyTip.innerHTML = `💔 المستوى ${num}: أنقذ ميساء!`;
+        skillCooldown = 0;
+        skillBtn.disabled = false;
+        skillCdText.textContent = 'جاهز';
+    }
+
+    function resetPlayer() {
+        player.x = 100;
+        player.y = 380;
+        player.vx = 0;
+        player.vy = 0;
+        player.grounded = false;
+        deathTimer = 0;
+    }
+
+    // =====================================================================
+    //  🧠  فيزياء
+    // =====================================================================
+
+    function rectCollide(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x &&
+               a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function updatePhysics() {
+        if (gameOver || gameWin) return;
+
+        player.vy += player.gravity;
+        if (player.vy > 14) player.vy = 14;
+
+        if (keys.left) { player.vx = -player.speed; player.facing = -1; }
+        else if (keys.right) { player.vx = player.speed; player.facing = 1; }
+        else { player.vx *= 0.85; if (Math.abs(player.vx) < 0.1) player.vx = 0; }
+
+        if (keys.jump && player.grounded) {
+            player.vy = player.jumpPower;
+            player.grounded = false;
+        }
+
+        player.x += player.vx;
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.w > W) player.x = W - player.w;
+
+        for (let p of platforms) {
+            if (rectCollide(player, p)) {
+                if (player.vx > 0) { player.x = p.x - player.w; }
+                else if (player.vx < 0) { player.x = p.x + p.w; }
+                player.vx = 0;
+            }
+        }
+
+        player.y += player.vy;
+        player.grounded = false;
+
+        for (let p of platforms) {
+            if (rectCollide(player, p)) {
+                if (player.vy > 0) {
+                    player.y = p.y - player.h;
+                    player.vy = 0;
+                    player.grounded = true;
+                } else if (player.vy < 0) {
+                    player.y = p.y + p.h;
+                    player.vy = 0;
+                }
+            }
+        }
+
+        if (player.y > H + 50) { gameOver = true; deathTimer = 40; }
+        if (player.y < -200) player.y = -200;
+    }
+
+    // =====================================================================
+    //  ⚡  المهارة
+    // =====================================================================
+
+    function activateSkill() {
+        if (gameOver || gameWin) return;
+        if (skillCooldown > 0) return;
+
+        const range = 90;
+        let killed = false;
+        for (let e of enemies) {
+            if (e.dead) continue;
+            let dx = Math.abs((e.x + e.w/2) - (player.x + player.w/2));
+            let dy = Math.abs((e.y + e.h/2) - (player.y + player.h/2));
+            if (dx < range && dy < range) {
+                e.dead = true;
+                killed = true;
+            }
+        }
+        if (killed) {
+            storyTip.innerHTML = '⚡ ضربة قاضية!';
+        } else {
+            storyTip.innerHTML = '😅 لا أعداء قريبون!';
+        }
+
+        skillCooldown = MAX_SKILL_CD;
+        skillBtn.disabled = true;
+        skillCdText.textContent = '60s';
+        enemies = enemies.filter(e => !e.dead);
+    }
+
+    // =====================================================================
+    //  👾  تحديث العناصر
+    // =====================================================================
+
+    function updateGameElements() {
+        if (gameOver || gameWin) return;
+
+        if (skillCooldown > 0) {
+            skillCooldown--;
+            let secondsLeft = Math.ceil(skillCooldown / 60);
+            if (secondsLeft <= 0) {
+                skillCooldown = 0;
+                skillBtn.disabled = false;
+                skillCdText.textContent = 'جاهز';
+            } else {
+                skillCdText.textContent = secondsLeft + 's';
+            }
+        }
+
+        for (let e of enemies) {
+            if (e.dead) continue;
+            e.x += e.vx;
+            if (e.x <= e.minX || e.x + e.w >= e.maxX) e.vx *= -1;
+
+            if (rectCollide(player, e)) {
+                if (player.vy > 0 && (player.y + player.h - e.y) < 22) {
+                    e.dead = true;
+                    player.vy = -9;
+                    storyTip.innerHTML = '💪 قتلت خاطفاً!';
+                } else {
+                    gameOver = true;
+                    deathTimer = 40;
+                    storyTip.innerHTML = '💀 أمسك بك الخاطفون...';
+                }
+            }
+        }
+        enemies = enemies.filter(e => !e.dead);
+
+        let remaining = 0;
+        for (let h of heartItems) {
+            if (h.collected) continue;
+            remaining++;
+            if (rectCollide(player, h)) {
+                h.collected = true;
+                hearts++;
+                heartSpan.textContent = hearts;
+                let left = heartItems.filter(c => !c.collected).length;
+                storyTip.innerHTML = '❤️ جمعت قلباً! (' + left + ' متبقي)';
+            }
+        }
+
+        let left = heartItems.filter(c => !c.collected).length;
+        if (left === 0 && !gameWin) {
+            storyTip.innerHTML = '✨ كل القلوب جمعت! اذهب إلى ميساء 🏃‍♂️';
+        }
+
+        const misaRect = { x: misaX, y: misaY, w: 36, h: 48 };
+        if (rectCollide(player, misaRect)) {
+            if (left === 0) {
+                let quote = maisaQuotes[Math.floor(Math.random() * maisaQuotes.length)];
+                maisaQuote.textContent = '💬 "' + quote + '"';
+
+                if (currentLevel < MAX_LEVEL) {
+                    gameWin = true;
+                    msgText.innerHTML = '🎉 أنقذت ميساء!';
+                    msgSub.innerHTML = `انتقال إلى المستوى ${currentLevel + 1}...`;
+                    overlayMsg.classList.add('show');
+                    setTimeout(() => {
+                        if (!gameOver) {
+                            currentLevel++;
+                            loadLevel(currentLevel);
+                            overlayMsg.classList.remove('show');
+                        }
+                    }, 2500);
+                } else {
+                    gameWin = true;
+                    msgText.innerHTML = '🎊 مبروك! أكملت كل المراحل! 🎊';
+                    msgSub.innerHTML = 'بلال وميساء عاشا بسعادة في طنجة. 🇲🇦❤️';
+                    overlayMsg.classList.add('show');
+                    storyTip.innerHTML = '🥰 النهاية السعيدة!';
+                }
+            } else {
+                storyTip.innerHTML = '⚠️ لا زال هناك قلوب! (' + left + ') اجمعها كلها!';
+            }
+        }
+    }
+
+    // =====================================================================
+    //  🎨  الرسم (خلفية متغيرة لكل مستوى)
+    // =====================================================================
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // --- الحصول على ألوان الخلفية للمستوى الحالي ---
+        const colors = backgroundColors[(currentLevel - 1) % backgroundColors.length];
+
+        let targetCamX = player.x - W * 0.35;
+        if (targetCamX < 0) targetCamX = 0;
+        if (targetCamX > W - W) targetCamX = 0;
+        cameraX += (targetCamX - cameraX) * 0.08;
+
+        ctx.save();
+        ctx.translate(-cameraX, 0);
+
+        // --- خلفية متدرجة حسب المستوى ---
+        let grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, colors.top);
+        grad.addColorStop(1, colors.bottom);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // --- نجوم (تتغير كثافتها مع المستوى) ---
+        ctx.fillStyle = '#fff';
+        let numStars = 30 + currentLevel * 5;
+        for (let i = 0; i < numStars; i++) {
+            let starX = (i * 37 + 23) % W;
+            let starY = (i * 59 + 11) % H;
+            ctx.globalAlpha = 0.2 + Math.random() * 0.6;
+            ctx.fillRect(starX, starY, 2, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // --- جبال (تتغير ألوانها حسب المستوى) ---
+        ctx.fillStyle = colors.mountain;
+        ctx.beginPath();
+        ctx.moveTo(-20, 300);
+        ctx.lineTo(150, 150);
+        ctx.lineTo(320, 300);
+        ctx.fill();
+        ctx.fillStyle = colors.mountain2;
+        ctx.beginPath();
+        ctx.moveTo(500, 300);
+        ctx.lineTo(650, 120);
+        ctx.lineTo(820, 300);
+        ctx.fill();
+
+        // --- منصات (ألوانها ثابتة) ---
+        for (let p of platforms) {
+            ctx.shadowColor = '#2a1a1a';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#5a3a2a';
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#7a5a3a';
+            for (let i = 0; i < p.w; i += 18) {
+                ctx.fillRect(p.x + i, p.y - 2, 10, 4);
+            }
+            ctx.fillStyle = '#3a2a1a';
+            for (let i = 0; i < p.w; i += 18) {
+                ctx.fillRect(p.x + i + 4, p.y + 6, 6, 6);
+            }
+        }
+
+        // --- قلوب ---
+        for (let h of heartItems) {
+            if (h.collected) continue;
+            let cx = h.x + 9, cy = h.y + 9;
+            ctx.shadowColor = '#ff3366';
+            ctx.shadowBlur = 25;
+            ctx.font = '26px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ff3366';
+            ctx.fillText('❤️', cx, cy - 1);
+        }
+        ctx.shadowBlur = 0;
+
+        // --- أعداء ---
+        for (let e of enemies) {
+            if (e.dead) continue;
+            ctx.fillStyle = '#2a1a0a';
+            ctx.shadowColor = '#e94560';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#4a2a1a';
+            ctx.fillRect(e.x + 4, e.y + 4, 6, 12);
+            ctx.fillRect(e.x + e.w - 10, e.y + 4, 6, 12);
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(e.x + 4, e.y + 4, 6, 6);
+            ctx.fillRect(e.x + e.w - 10, e.y + 4, 6, 6);
+            ctx.strokeStyle = '#4a2a1a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(e.x + 4, e.y - 2);
+            ctx.lineTo(e.x - 6, e.y - 10);
+            ctx.moveTo(e.x + e.w - 4, e.y - 2);
+            ctx.lineTo(e.x + e.w + 6, e.y - 10);
+            ctx.stroke();
+        }
+
+        // --- ميساء ---
+        let mx = misaX, my = misaY;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff69b4';
+        ctx.fillStyle = '#ff6b81';
+        ctx.fillRect(mx + 4, my + 18, 28, 22);
+        ctx.fillStyle = '#ffb6c1';
+        ctx.fillRect(mx + 6, my + 6, 24, 14);
+        ctx.fillStyle = '#f5cba7';
+        ctx.fillRect(mx + 6, my - 6, 24, 14);
+        ctx.fillStyle = '#4a2a1a';
+        ctx.fillRect(mx + 2, my - 8, 32, 8);
+        ctx.fillRect(mx - 2, my - 2, 8, 24);
+        ctx.fillRect(mx + 30, my - 2, 8, 24);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(mx + 12, my - 2, 6, 6);
+        ctx.fillRect(mx + 22, my - 2, 6, 6);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(mx + 14, my, 2, 3);
+        ctx.fillRect(mx + 24, my, 2, 3);
+        ctx.fillStyle = '#3498db';
+        ctx.fillRect(mx + 22, my + 6, 2, 6);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(mx + 18, my + 12, 5, 0, Math.PI);
+        ctx.stroke();
+        ctx.font = '22px Arial';
+        ctx.fillStyle = '#555';
+        ctx.shadowBlur = 0;
+        ctx.fillText('⛓️', mx + 12, my - 24);
+
+        // --- حوار ميساء ---
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#000';
+        ctx.textAlign = 'center';
+        let left = heartItems.filter(c => !c.collected).length;
+        if (!gameWin && !gameOver) {
+            if (left > 0) {
+                ctx.fillStyle = '#ffb6c1';
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText('💔 بلال... أنقذني!', mx + 18, my - 62);
+                ctx.fillStyle = '#ff8a9e';
+                ctx.font = '14px Arial';
+                ctx.fillText('(اجمع ' + left + ' قلوب)', mx + 18, my - 42);
+            } else {
+                ctx.fillStyle = '#2ecc71';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('🥹 بلال! أنا هنا!', mx + 18, my - 62);
+                ctx.fillStyle = '#f1c40f';
+                ctx.font = '28px Arial';
+                ctx.fillText('✨', mx - 18, my - 66);
+                ctx.fillText('✨', mx + 54, my - 66);
+            }
+        }
+        ctx.shadowBlur = 0;
+
+        // --- بلال ---
+        let px = player.x, py = player.y;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#2980b9';
+        ctx.fillStyle = '#2980b9';
+        ctx.fillRect(px, py + 12, player.w, 18);
+        ctx.fillStyle = '#f5cba7';
+        ctx.fillRect(px + 2, py - 2, 26, 16);
+        ctx.fillStyle = '#2c1a0a';
+        ctx.fillRect(px, py - 6, 30, 8);
+        ctx.fillStyle = '#fff';
+        if (player.facing === 1) {
+            ctx.fillRect(px + 16, py + 2, 6, 6);
+            ctx.fillRect(px + 6, py + 2, 6, 6);
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(px + 18, py + 4, 2, 3);
+            ctx.fillRect(px + 8, py + 4, 2, 3);
+        } else {
+            ctx.fillRect(px + 18, py + 2, 6, 6);
+            ctx.fillRect(px + 8, py + 2, 6, 6);
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(px + 8, py + 4, 2, 3);
+            ctx.fillRect(px + 18, py + 4, 2, 3);
+        }
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px + 15, py + 12, 4, 0, Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = '#c0392b';
+        ctx.fillRect(px + 2, py + 32, 10, 6);
+        ctx.fillRect(px + 18, py + 32, 10, 6);
+        ctx.shadowBlur = 0;
+
+        // --- تأثير المهارة ---
+        if (skillCooldown > MAX_SKILL_CD - 10) {
+            ctx.beginPath();
+            ctx.arc(px + 15, py + 18, 55, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.2)';
+            ctx.fill();
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.font = '34px Arial';
+            ctx.fillStyle = '#2ecc71';
+            ctx.textAlign = 'center';
+            ctx.fillText('💥', px + 15, py - 22);
+        }
+
+        // --- معلومات على الشاشة ---
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#000';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px Arial';
+        let leftHearts = heartItems.filter(c => !c.collected).length;
+        ctx.fillText('💔 ' + leftHearts, 12, cameraX + 30);
+        if (leftHearts === 0 && !gameWin && !gameOver) {
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillText('✅ اذهب لميساء!', 12, cameraX + 55);
+        }
+        ctx.shadowBlur = 0;
+
+        ctx.restore();
+
+        // --- نهاية سعيدة (قلوب) ---
+        if (gameWin && currentLevel === MAX_LEVEL) {
+            for (let i = 0; i < 50; i++) {
+                ctx.font = (20 + Math.random() * 40) + 'px Arial';
+                ctx.fillStyle = '#ff3366';
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#ff3366';
+                ctx.globalAlpha = 0.4 + Math.random() * 0.6;
+                ctx.fillText('❤️', Math.random() * W, Math.random() * H);
+            }
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // =====================================================================
+    //  🔄  حلقة اللعبة
+    // =====================================================================
+
+    function gameLoop() {
+        if (gameOver) {
+            deathTimer--;
+            if (deathTimer <= 0) {
+                loadLevel(currentLevel);
+                overlayMsg.classList.remove('show');
+            } else {
+                msgText.innerHTML = '💀 أمسك بك الخاطفون!';
+                msgSub.innerHTML = 'إعادة المحاولة... ' + (deathTimer/10).toFixed(0);
+                overlayMsg.classList.add('show');
+                maisaQuote.textContent = '';
+            }
+        }
+
+        if (!gameOver && !gameWin) {
+            updatePhysics();
+            updateGameElements();
+
+            if (hideTimer > 0) {
+                hideTimer--;
+                if (hideTimer === 0) {
+                    controlsArea.classList.add('hidden');
+                }
+            }
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // =====================================================================
+    //  🎮  ربط الأزرار
+    // =====================================================================
+
+    function showControls() {
+        controlsArea.classList.remove('hidden');
+        hideTimer = HIDE_DELAY;
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { keys.left = true; e.preventDefault(); showControls(); }
+        if (e.key === 'ArrowRight') { keys.right = true; e.preventDefault(); showControls(); }
+        if (e.key === ' ' || e.key === 'Space' || e.key === 'ArrowUp') {
+            keys.jump = true; e.preventDefault(); showControls();
+        }
+        if (e.key === 'Shift' || e.key === 'x' || e.key === 'X') {
+            keys.skill = true; e.preventDefault(); showControls();
+        }
+    });
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') keys.left = false;
+        if (e.key === 'ArrowRight') keys.right = false;
+        if (e.key === ' ' || e.key === 'Space' || e.key === 'ArrowUp') {
+            keys.jump = false; e.preventDefault();
+        }
+        if (e.key === 'Shift' || e.key === 'x' || e.key === 'X') {
+            keys.skill = false; e.preventDefault();
+        }
+    });
+
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    const skillBtnEl = document.getElementById('skillBtn');
+
+    function setupTouchButton(btn, onStart, onEnd) {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            onStart();
+            showControls();
+        }, { passive: false });
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            onEnd();
+        }, { passive: false });
+        btn.addEventListener('touchcancel', (e) => {
+            onEnd();
+        }, { passive: false });
+        btn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            onStart();
+            showControls();
+        });
+        btn.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            onEnd();
+        });
+        btn.addEventListener('mouseleave', () => {
+            onEnd();
+        });
+    }
+
+    setupTouchButton(leftBtn, () => { keys.left = true; }, () => { keys.left = false; });
+    setupTouchButton(rightBtn, () => { keys.right = true; }, () => { keys.right = false; });
+    setupTouchButton(jumpBtn, () => { keys.jump = true; }, () => { keys.jump = false; });
+
+    skillBtnEl.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        showControls();
+        if (skillCooldown <= 0 && !gameOver && !gameWin) {
+            activateSkill();
+        }
+    }, { passive: false });
+    skillBtnEl.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        showControls();
+        if (skillCooldown <= 0 && !gameOver && !gameWin) {
+            activateSkill();
+        }
+    });
+
+    canvas.addEventListener('touchstart', (e) => { showControls(); }, { passive: true });
+
+    let controlsVisible = true;
+    toggleBtn.addEventListener('click', () => {
+        controlsVisible = !controlsVisible;
+        if (controlsVisible) {
+            controlsArea.classList.remove('hidden');
+            hideTimer = HIDE_DELAY;
+            toggleBtn.textContent = '👁️';
+        } else {
+            controlsArea.classList.add('hidden');
+            toggleBtn.textContent = '🙈';
+        }
+    });
+
+    // =====================================================================
+    //  🚀  بدء التشغيل
+    // =====================================================================
+
+    loadLevel(1);
+    gameLoop();
+    console.log('💖 بلال × ميساء - خلفية متغيرة + بدون تشوه!');
+</script>
+</body>
+</html>
